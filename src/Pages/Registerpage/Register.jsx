@@ -1,218 +1,183 @@
 import React, { useState } from "react";
-import { registerUserApi } from "../../Api/Api";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { registerUserApi } from "../../Api/Api"; // Ensure this API endpoint is correctly implemented
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Register.css";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import validator from "validator"; // Ensure validator is installed using npm install validator
 
 const Register = () => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-
-  const [firstNameError, setFirstNameError] = useState("");
-  const [lastNameError, setLastNameError] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  });
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
 
   const navigate = useNavigate();
 
-  const handleFirstname = (e) => {
-    setFirstName(e.target.value);
-  };
-  const handleLastname = (e) => {
-    setLastName(e.target.value);
-  };
-  const handleEmail = (e) => {
-    setEmail(e.target.value);
-  };
-  const handlePassword = (e) => {
-    setPassword(e.target.value);
-  };
-  const handleConfirmPassword = (e) => {
-    setConfirmPassword(e.target.value);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value.trim() });
   };
 
-  // Validation
-  const validate = () => {
+  const validateAndSanitize = () => {
+    let tempErrors = {};
     let isValid = true;
 
-    setFirstNameError("");
-    setLastNameError("");
-    setEmailError("");
-    setPasswordError("");
-    setConfirmPasswordError("");
-
-    if (firstName.trim() === "") {
-      setFirstNameError("Firstname is required");
+    // Sanitize and validate firstName and lastName
+    if (!formData.firstName) {
+      tempErrors.firstName = "First name is required";
       isValid = false;
     }
 
-    if (lastName.trim() === "") {
-      setLastNameError("Lastname is required");
+    if (!formData.lastName) {
+      tempErrors.lastName = "Last name is required";
       isValid = false;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (email.trim() === "" || !emailRegex.test(email)) {
-      setEmailError("A valid email is required");
+    // Sanitizing and validating email
+    if (!validator.isEmail(formData.email)) {
+      tempErrors.email = "Email is not valid";
       isValid = false;
     }
 
-    if (password.trim() === "") {
-      setPasswordError("Password is required");
+    // Validate password for length and complexity
+    if (
+      !validator.isStrongPassword(formData.password, {
+        minLength: 8,
+        minLowercase: 1,
+        minUppercase: 1,
+        minNumbers: 1,
+        minSymbols: 1,
+      })
+    ) {
+      tempErrors.password = "Password must be stronger";
       isValid = false;
+      toast.error(
+        "Password must include at least 8 characters, one uppercase, one lowercase, one number, and one symbol."
+      );
     }
 
-    if (confirmPassword.trim() === "") {
-      setConfirmPasswordError("Confirm password is required");
-      isValid = false;
-    }
-
-    if (password.trim() !== confirmPassword.trim()) {
-      setConfirmPasswordError("Passwords do not match");
-      isValid = false;
-    }
-
+    setErrors(tempErrors);
     return isValid;
   };
 
-  // For button
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
-    const isValid = validate();
-    if (!isValid) {
+    if (!validateAndSanitize()) {
+      toast.error("Please correct the errors in the form");
       return;
     }
 
-    // Making API request
-    const data = {
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      password: password,
-    };
-
-    registerUserApi(data)
-      .then((res) => {
-        if (res?.data?.success === false) {
-          toast.error(res.data.message);
-        } else {
-          debugger;
-          navigate("/login");
-          toast.success(res.data.message);
-          // localStorage.setItem("token", res.data.token);
-          const convertData = JSON.stringify(res.data.userData);
-          localStorage.setItem("user", convertData);
-        }
-      })
-      .catch((error) => {
-        console.error("Error during registration:", error);
-        toast.error("Something went wrong. Please try again.");
-      });
+    try {
+      const response = await registerUserApi(formData);
+      if (response.data.success) {
+        toast.success("Registration successful!");
+        navigate("/login");
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      toast.error("Registration failed. Please try again.");
+    }
   };
 
   return (
     <div className="container d-flex justify-content-center align-items-center">
       <div className="card p-4 shadow-sm">
-        <h1 className="text-center mb-4">Create an Account!</h1>
-
+        <h1 className="text-center mb-4">Create an Account</h1>
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <label htmlFor="firstName" className="form-label">
-              Firstname
+              First Name
             </label>
             <input
               id="firstName"
-              value={firstName}
-              onChange={handleFirstname}
               type="text"
-              className={`form-control ${firstNameError ? "is-invalid" : ""}`}
-              placeholder="Enter your firstname"
+              className={`form-control ${errors.firstName ? "is-invalid" : ""}`}
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleInputChange}
+              placeholder="Enter your first name"
             />
-            {firstNameError && (
-              <div className="invalid-feedback">{firstNameError}</div>
+            {errors.firstName && (
+              <div className="invalid-feedback">{errors.firstName}</div>
             )}
           </div>
-
           <div className="mb-3">
             <label htmlFor="lastName" className="form-label">
-              Lastname
+              Last Name
             </label>
             <input
               id="lastName"
-              value={lastName}
-              onChange={handleLastname}
               type="text"
-              className={`form-control ${lastNameError ? "is-invalid" : ""}`}
-              placeholder="Enter your lastname"
+              className={`form-control ${errors.lastName ? "is-invalid" : ""}`}
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleInputChange}
+              placeholder="Enter your last name"
             />
-            {lastNameError && (
-              <div className="invalid-feedback">{lastNameError}</div>
+            {errors.lastName && (
+              <div className="invalid-feedback">{errors.lastName}</div>
             )}
           </div>
-
           <div className="mb-3">
             <label htmlFor="email" className="form-label">
               Email Address
             </label>
             <input
               id="email"
-              value={email}
-              onChange={handleEmail}
               type="email"
-              className={`form-control ${emailError ? "is-invalid" : ""}`}
-              placeholder="Enter your email address"
+              className={`form-control ${errors.email ? "is-invalid" : ""}`}
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="Enter your email"
             />
-            {emailError && <div className="invalid-feedback">{emailError}</div>}
+            {errors.email && (
+              <div className="invalid-feedback">{errors.email}</div>
+            )}
           </div>
-
           <div className="mb-3">
             <label htmlFor="password" className="form-label">
               Password
             </label>
             <input
               id="password"
-              value={password}
-              onChange={handlePassword}
-              type="password"
-              className={`form-control ${passwordError ? "is-invalid" : ""}`}
-              placeholder="Enter your password"
+              type={showPassword ? "text" : "password"}
+              className={`form-control ${errors.password ? "is-invalid" : ""}`}
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              placeholder="Create a password"
             />
-            {passwordError && (
-              <div className="invalid-feedback">{passwordError}</div>
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="btn btn-secondary btn-sm"
+            >
+              {showPassword ? "Hide" : "Show"} Password
+            </button>
+            {errors.password && (
+              <div className="invalid-feedback">{errors.password}</div>
             )}
           </div>
-
-          <div className="mb-3">
-            <label htmlFor="confirmPassword" className="form-label">
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={handleConfirmPassword}
-              type="password"
-              className={`form-control ${
-                confirmPasswordError ? "is-invalid" : ""
-              }`}
-              placeholder="Enter your confirm password"
-            />
-            {confirmPasswordError && (
-              <div className="invalid-feedback">{confirmPasswordError}</div>
-            )}
+          <div className="d-flex justify-content-end">
+            <button type="submit" className="btn btn-primary">
+              Register
+            </button>
           </div>
-
-          <button type="submit" className="btn btn-primary w-100">
-            Create Account
-          </button>
         </form>
+        <div className="text-center mt-2">
+          Already have an account? <Link to="/login">Log in</Link>
+        </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

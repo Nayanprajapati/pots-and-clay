@@ -1,5 +1,7 @@
 import React from "react";
 import "./App.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Don't forget to import the CSS
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Register from "./Pages/Registerpage/Register";
 import Login from "./Pages/loginpage/Login";
@@ -53,6 +55,17 @@ function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/search" element={<SearchResults />} />
         </Routes>
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       </BrowserRouter>
     </div>
   );

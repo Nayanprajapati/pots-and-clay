@@ -238,7 +238,7 @@ const AdminDashboard = () => {
                     <img
                       height={"40px"}
                       width={"40px"}
-                      src={`http://localhost:5000/products/${singleProduct.productImage}`}
+                      src={`https://localhost:5000/products/${singleProduct.productImage}`}
                       alt={singleProduct.productName}
                     />
                   </td>

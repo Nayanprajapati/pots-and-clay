@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { faCartShopping } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { searchProducts } from "../../Api/Api";
-import { toast } from "react-toastify"; // Assuming you are using react-toastify for notifications
+import { searchProducts } from "../../Api/Api"; // Assuming this API returns the search results
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -21,7 +22,20 @@ const Navbar = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    navigate(`/search?query=${search}`);
+    if (!search.trim()) {
+      toast.error("Please enter a search query");
+      return;
+    }
+    try {
+      const result = await searchProducts(search); // Assuming searchProducts is a properly implemented API call
+      if (result.data.products && result.data.products.length > 0) {
+        navigate(`/search?query=${search}`);
+      } else {
+        toast.error("No products found");
+      }
+    } catch (error) {
+      toast.error("An error occurred during the search");
+    }
   };
 
   return (
@@ -70,7 +84,6 @@ const Navbar = () => {
               <FontAwesomeIcon icon={faCartShopping} size="2x" />
             </Link>
           </div>
-
           <form className="d-flex" role="search">
             {user ? (
               <div className="dropdown">
@@ -135,6 +148,17 @@ const Navbar = () => {
           </form>
         </div>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </nav>
   );
 };
