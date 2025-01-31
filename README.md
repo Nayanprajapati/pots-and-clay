@@ -55,21 +55,6 @@ This is the connection string for a MongoDB Atlas (cloud-hosted) database. It us
 4.JWT_SECRET=SECRETHO:
 This is the secret key used to sign JSON Web Tokens (JWT) for authentication purposes. It should be kept confidential and is used to ensure the integrity and validity of tokens issued by your server.
 
-5.EMAIL_USER=helloprajapati123456@gmail.com:
-This is the email address used as the sender for sending emails from your application. This could be used for sending confirmation emails, password resets, and other notifications.
-
-6.EMAIL_PASS=xwkh ruir duel dybu:
-This is the password for the email account specified in EMAIL_USER. It is used for authenticating with the email server when sending emails. (Note: For security reasons, it's better to use an app-specific password or other secure methods instead of a personal email password.)
-
-7.HOST=http://192.168.18.33:
-This specifies the host URL where your application is running. In this case, it points to a local network IP address. This could be the server's IP address in a development or staging environment.
-
-Author: Nayan Prajapati
-
-
-
-
-
 
 
 
